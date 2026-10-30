@@ -37,7 +37,7 @@ export default function Navbar({
             <h1>{title}</h1>
             <span className="status-pill status-paid" style={{ padding: '3px 10px', fontSize: '0.68rem', gap: '6px' }}>
               <span className="pulse-indicator" style={{ width: '6px', height: '6px' }}></span>
-              Mumbai Cloud 🇮🇳
+              Live
             </span>
           </div>
           {subtitle && <div className="header-subtitle">{subtitle}</div>}

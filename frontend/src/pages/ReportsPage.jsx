@@ -236,7 +236,7 @@ export default function ReportsPage({ monthlyTrend, onRefreshDashboard }) {
             <div style={{ padding: '16px', borderRadius: 'var(--radius-md)', background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
               <div style={{ fontWeight: 700, fontSize: '0.92rem', marginBottom: '4px' }}>Import Excel Workbook (.xlsx)</div>
               <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
-                Upload your Personal Finance Tracke.xlsx file to parse all sheets into PostgreSQL.
+                Upload an Excel spreadsheet (.xlsx) to import transaction records into your ledger.
               </div>
               <input
                 type="file"

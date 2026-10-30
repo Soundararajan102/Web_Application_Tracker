@@ -51,7 +51,7 @@ export default function DashboardPage({ data, onRefresh, onNavigate, onOpenAddMo
           Loading Wealth Intelligence...
         </div>
         <div style={{ fontSize: '0.85rem', marginTop: '6px' }}>
-          Connecting to Supabase Cloud PostgreSQL (Mumbai 🇮🇳)
+          Syncing your financial records...
         </div>
       </div>
     );
@@ -210,12 +210,12 @@ export default function DashboardPage({ data, onRefresh, onNavigate, onOpenAddMo
         <div className="hero-top-row">
           <div className="hero-status-pill">
             <span className="pulse-indicator"></span>
-            <span>Real-Time Cloud Sync • Mumbai 🇮🇳</span>
+            <span>Live Balance</span>
           </div>
 
           <div className="hero-period-tag" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <Sparkles size={14} style={{ color: 'var(--emerald-400)' }} />
-            <span>Supabase Cloud PostgreSQL</span>
+            <span>Overview</span>
           </div>
         </div>
 

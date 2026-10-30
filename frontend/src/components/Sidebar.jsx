@@ -88,7 +88,7 @@ export default function Sidebar({
           </div>
           <div className="user-meta-tag">
             <span className="pulse-indicator" style={{ width: '5px', height: '5px' }}></span>
-            Mumbai Cloud 🇮🇳
+            Active Ledger
           </div>
         </div>
       </div>
@@ -124,7 +124,7 @@ export default function Sidebar({
       <div className="sidebar-footer">
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
-            Supabase PostgreSQL 17
+            FinFlow Intelligence
           </div>
         </div>
         <div style={{ fontSize: '0.72rem', color: 'var(--emerald-400)', fontWeight: 700 }}>
