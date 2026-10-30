@@ -119,8 +119,8 @@ export default function DashboardPage({ data, onRefresh, onNavigate, onOpenAddMo
   };
 
   // Category Doughnut Data
-  const donutLabels = categoryBreakdown.length > 0 ? categoryBreakdown.map(c => c.category) : ['Food'];
-  const donutValues = categoryBreakdown.length > 0 ? categoryBreakdown.map(c => c.amount) : [30];
+  const donutLabels = categoryBreakdown.length > 0 ? categoryBreakdown.map(c => c.category) : ['No Outflows'];
+  const donutValues = categoryBreakdown.length > 0 ? categoryBreakdown.map(c => c.amount) : [1];
   const donutColors = ['#6366f1', '#10b981', '#f59e0b', '#06b6d4', '#ec4899', '#8b5cf6'];
 
   const donutChartData = {
@@ -128,7 +128,7 @@ export default function DashboardPage({ data, onRefresh, onNavigate, onOpenAddMo
     datasets: [
       {
         data: donutValues,
-        backgroundColor: donutColors.slice(0, donutLabels.length),
+        backgroundColor: categoryBreakdown.length > 0 ? donutColors.slice(0, donutLabels.length) : ['#334155'],
         borderWidth: 0,
         hoverOffset: 6,
       },
@@ -200,11 +200,11 @@ export default function DashboardPage({ data, onRefresh, onNavigate, onOpenAddMo
         <div className="hero-top-row">
           <div className="hero-status-pill">
             <span className="pulse-indicator"></span>
-            <span>All Accounts Reconciled • Oct 2026</span>
+            <span>Real-Time Cloud Sync • Active</span>
           </div>
 
           <div className="hero-period-tag">
-            Spreadsheet V1 Mirror • ₹46,125 Active
+            PostgreSQL Database • Live
           </div>
         </div>
 
@@ -219,7 +219,7 @@ export default function DashboardPage({ data, onRefresh, onNavigate, onOpenAddMo
         <div className="hero-substats">
           <div className="hero-stat-badge" style={{ background: 'var(--emerald-bg)', color: 'var(--emerald-400)', border: '1px solid var(--emerald-border)' }}>
             <TrendingUp size={14} />
-            <span>+₹{formatINR(kpis.monthlySavings)} ({kpis.savingsRate || 0}%) October Surplus</span>
+            <span>+₹{formatINR(kpis.monthlySavings)} ({kpis.savingsRate || 0}%) Net Savings</span>
           </div>
 
           <div className="hero-stat-badge" style={{ background: 'var(--amber-bg)', color: 'var(--amber-400)', border: '1px solid var(--amber-border)' }}>
@@ -271,7 +271,7 @@ export default function DashboardPage({ data, onRefresh, onNavigate, onOpenAddMo
             <div style={{ minWidth: 0, flex: 1 }}>
               <div className="command-card-label">Loans Receivable</div>
               <div className="command-card-val mono">₹{formatINR(kpis.totalLoansGivenRemaining)}</div>
-              <div className="command-card-hint">Prathap & Sachinn →</div>
+              <div className="command-card-hint">Manage Loans →</div>
             </div>
           </div>
         </div>
@@ -320,8 +320,8 @@ export default function DashboardPage({ data, onRefresh, onNavigate, onOpenAddMo
           </div>
           <div className="bento-kpi-value mono">₹{formatINR(kpis.totalIncomeYTD)}</div>
           <div className="bento-kpi-footer">
-            <span className="status-pill status-paid">Salaries & Gifts</span>
-            <span>Jun – Oct (5 Months)</span>
+            <span className="status-pill status-paid">{kpis.totalIncomeYTD > 0 ? 'Active Inflow' : 'Zero Inflow'}</span>
+            <span>Recorded Inflows</span>
           </div>
         </div>
 
@@ -334,8 +334,8 @@ export default function DashboardPage({ data, onRefresh, onNavigate, onOpenAddMo
           </div>
           <div className="bento-kpi-value mono">₹{formatINR(kpis.totalExpensesYTD)}</div>
           <div className="bento-kpi-footer">
-            <span className="status-pill status-need">Disciplined</span>
-            <span>Food / Chips (Want)</span>
+            <span className="status-pill status-need">{kpis.totalExpensesYTD > 0 ? 'Tracked' : 'Zero Outflow'}</span>
+            <span>Outflow Ledger</span>
           </div>
         </div>
 
@@ -349,13 +349,13 @@ export default function DashboardPage({ data, onRefresh, onNavigate, onOpenAddMo
           <div className="bento-kpi-value mono">₹{formatINR(kpis.totalLoansGivenRemaining)}</div>
           <div className="bento-kpi-footer">
             <span className="status-pill status-pending">{pendingLoans.length > 0 ? `${pendingLoans.length} Due` : 'Cleared'}</span>
-            <span>Prathap & Sachinn</span>
+            <span>{pendingLoans.length > 0 ? `${pendingLoans.length} Active Borrowers` : 'No Active Loans'}</span>
           </div>
         </div>
 
         <div className="bento-kpi-card" style={{ '--kpi-accent': 'var(--purple-500)' }}>
           <div className="bento-kpi-top">
-            <span className="bento-kpi-label">October Net Savings</span>
+            <span className="bento-kpi-label">Current Month Savings</span>
             <div className="bento-kpi-icon" style={{ background: 'var(--purple-bg)', color: 'var(--purple-500)' }}>
               <PiggyBank size={20} />
             </div>
@@ -363,7 +363,7 @@ export default function DashboardPage({ data, onRefresh, onNavigate, onOpenAddMo
           <div className="bento-kpi-value mono">₹{formatINR(kpis.monthlySavings)}</div>
           <div className="bento-kpi-footer">
             <span className="status-pill status-paid">{kpis.savingsRate || 0}% Saved</span>
-            <span>Surplus ready to invest</span>
+            <span>Monthly Surplus</span>
           </div>
         </div>
       </section>

@@ -44,4 +44,4 @@ def update_setting(key: str, data: SettingUpdate, db: Session = Depends(get_db))
 @router.post("/reset-to-defaults")
 def reset_defaults(db: Session = Depends(get_db)):
     seed_database(force=True)
-    return {"message": "Database reset and seeded with initial spreadsheet data successfully!"}
+    return {"message": "Database reset to clean state successfully!"}

@@ -48,7 +48,7 @@ export default function ReportsPage({ monthlyTrend, onRefreshDashboard }) {
   };
 
   const handleReset = async () => {
-    if (!window.confirm('Are you sure you want to restore the initial spreadsheet data? Any unsaved edits will be re-initialized.')) return;
+    if (!window.confirm('Are you sure you want to reset your database? This will clear all transactions.')) return;
     try {
       setIsResetting(true);
       const res = await resetToDefaults();
@@ -262,8 +262,8 @@ export default function ReportsPage({ monthlyTrend, onRefreshDashboard }) {
             <div style={{ padding: '16px', borderRadius: 'var(--radius-md)', background: 'rgba(244, 63, 94, 0.05)', border: '1px solid var(--rose-border)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--rose-500)' }}>Reset to Spreadsheet Defaults</div>
-                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Resets PostgreSQL tables to seed state</div>
+                  <div style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--rose-500)' }}>Reset Database to Clean State</div>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Clears all transaction tables in your database</div>
                 </div>
                 <button className="btn btn-danger btn-sm" onClick={handleReset} disabled={isResetting}>
                   <RotateCcw size={15} />

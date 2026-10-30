@@ -37,11 +37,20 @@ def get_dashboard_overview(db: Session = Depends(get_db)):
     cash_balance = cash_income - cash_expense
     account_balance = current_balance - cash_balance
 
-    # 6. Current Month Net Savings (October or current)
-    current_month_str = datetime.now().strftime("%b")
-    # For user test data, Oct has entries
-    current_month_incomes = sum(i.amount for i in incomes if i.month == "Oct" or (i.date and i.date.month == 10))
-    current_month_expenses = sum(e.amount for e in expenses if e.month == "Oct" or (e.date and e.date.month == 10))
+    # 6. Current Month Net Savings
+    now = datetime.now()
+    current_month_str = now.strftime("%b")
+    current_month_num = now.month
+    current_year_num = now.year
+
+    current_month_incomes = sum(
+        i.amount for i in incomes 
+        if i.month == current_month_str or (i.date and i.date.month == current_month_num and i.date.year == current_year_num)
+    )
+    current_month_expenses = sum(
+        e.amount for e in expenses 
+        if e.month == current_month_str or (e.date and e.date.month == current_month_num and e.date.year == current_year_num)
+    )
     monthly_savings = current_month_incomes - current_month_expenses
     savings_rate = (monthly_savings / current_month_incomes * 100) if current_month_incomes > 0 else 0.0
 
@@ -51,22 +60,16 @@ def get_dashboard_overview(db: Session = Depends(get_db)):
     running_balance = 0.0
 
     for m in months:
-        m_inc = sum(i.amount for i in incomes if i.month == m)
-        m_exp = sum(e.amount for e in expenses if e.month == m)
+        m_inc = sum(i.amount for i in incomes if i.month == m or (i.date and i.date.strftime("%b") == m))
+        m_exp = sum(e.amount for e in expenses if e.month == m or (e.date and e.date.strftime("%b") == m))
         m_loans_lent = sum(l.amount_lent for l in loans if l.date and l.date.strftime("%b") == m)
         m_loans_rep = sum(l.amount_repaid for l in loans if l.date and l.date.strftime("%b") == m)
         m_inv = sum(inv.amount for inv in investments if inv.date and inv.date.strftime("%b") == m)
         m_savings = m_inc - m_exp
         m_rate = (m_savings / m_inc) if m_inc > 0 else 0.0
 
-        if m in ["Jun", "Jul", "Aug", "Sep"]:
-            running_balance += m_inc - m_exp
-            bal = running_balance
-        elif m == "Oct":
-            # Loans given in Oct: 38,300, repaid: 30,000 -> net 8,300
-            bal = 5825.0  # as reflected in sheet after loan outflow
-        else:
-            bal = 0.0
+        running_balance += (m_inc + m_loans_rep) - (m_exp + m_loans_lent + m_inv)
+        bal = running_balance
 
         monthly_trend.append({
             "month": m,
@@ -113,36 +116,40 @@ def get_dashboard_overview(db: Session = Depends(get_db)):
     for i in incomes:
         feed.append({
             "id": f"inc-{i.id}",
-            "type": "income",
+            "type": "INCOME",
             "title": f"Income: {i.source}",
+            "description": f"Income: {i.source} - {i.description or i.notes or ''}",
             "amount": i.amount,
             "date": i.date.isoformat() if i.date else None,
             "category": i.source,
-            "paymentMode": i.payment_mode,
+            "payment_method": i.payment_mode,
             "notes": i.notes,
         })
     for e in expenses:
         feed.append({
             "id": f"exp-{e.id}",
-            "type": "expense",
+            "type": "EXPENSE",
             "title": f"Expense: {e.description or e.category}",
+            "description": f"Expense: {e.description or e.category}",
             "amount": e.amount,
             "date": e.date.isoformat() if e.date else None,
             "category": e.category,
-            "paymentMode": e.payment_method,
+            "payment_method": e.payment_method,
             "needOrWant": e.need_or_want,
             "notes": e.notes,
         })
     for l in loans:
         feed.append({
             "id": f"loan-{l.id}",
-            "type": "loan",
+            "type": "LOAN",
             "title": f"Loan: {l.borrower} ({l.status})",
+            "description": f"Loan: {l.borrower} ({l.status})",
             "amount": l.amount_lent,
             "repaid": l.amount_repaid,
             "remaining": l.remaining,
             "date": l.date.isoformat() if l.date else None,
             "category": "Loan Lent",
+            "payment_method": "Account",
             "status": l.status,
             "notes": l.notes,
         })
@@ -157,8 +164,8 @@ def get_dashboard_overview(db: Session = Depends(get_db)):
             "id": l.id,
             "borrower": l.borrower,
             "date": l.date.isoformat() if l.date else None,
-            "amountLent": l.amount_lent,
-            "amountRepaid": l.amount_repaid,
+            "amount_lent": l.amount_lent,
+            "amount_repaid": l.amount_repaid,
             "remaining": l.remaining,
             "status": l.status,
             "notes": l.notes,

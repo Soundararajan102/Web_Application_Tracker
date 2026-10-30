@@ -81,12 +81,12 @@ export default function Sidebar({
 
       {/* User Vault Identifier */}
       <div className="sidebar-user-card">
-        <div className="user-avatar">S</div>
+        <div className="user-avatar">V</div>
         <div style={{ minWidth: 0, flex: 1 }}>
           <div className="user-meta-name" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            Soundar's Vault
+            Personal Vault
           </div>
-          <div className="user-meta-tag">Personal Ledger V1</div>
+          <div className="user-meta-tag">FinFlow Cloud</div>
         </div>
       </div>
 

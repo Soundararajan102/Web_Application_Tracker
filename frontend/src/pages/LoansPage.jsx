@@ -281,8 +281,8 @@ export default function LoansPage({ onRefreshDashboard }) {
               value={repaymentMode}
               onChange={(e) => setRepaymentMode(e.target.value)}
             >
-              <option value="Account">Bank Account (₹44,325 liquid)</option>
-              <option value="Cash">Cash on Hand (₹1,500 liquid)</option>
+              <option value="Account">Bank Account</option>
+              <option value="Cash">Cash on Hand</option>
             </select>
           </div>
 
@@ -305,7 +305,7 @@ export default function LoansPage({ onRefreshDashboard }) {
             <input
               type="text"
               className="form-input"
-              placeholder="e.g. Ramesh, Prathap"
+              placeholder="e.g. Borrower Name"
               value={formData.borrower}
               onChange={(e) => setFormData({ ...formData, borrower: e.target.value })}
               required

@@ -276,7 +276,7 @@ export default function ExpensesPage({ onRefreshDashboard }) {
               <input
                 type="text"
                 className="form-input"
-                placeholder="e.g. Chips, Coffee, Team lunch"
+                placeholder="e.g. Groceries, Coffee, Transport"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               />

@@ -313,7 +313,7 @@ export default function App() {
               <input
                 type="text"
                 className="form-input"
-                placeholder="e.g. Prathap, Sachinn"
+                placeholder="e.g. Borrower Name"
                 value={quickForm.borrower}
                 onChange={(e) => setQuickForm({ ...quickForm, borrower: e.target.value })}
                 required
