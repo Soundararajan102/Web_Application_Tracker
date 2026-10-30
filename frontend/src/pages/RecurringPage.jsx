@@ -124,7 +124,7 @@ export default function RecurringPage({ onRefreshDashboard }) {
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-                  <Calendar size={15} style={{ color: 'var(--indigo-500)' }} />
+                  <Calendar size={15} style={{ color: 'var(--cyan-400)' }} />
                   <span>Scheduled on day <strong>{item.due_day}</strong> of every month</span>
                 </div>
               </div>

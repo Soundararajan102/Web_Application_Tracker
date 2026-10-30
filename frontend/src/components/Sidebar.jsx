@@ -9,9 +9,7 @@ import {
   TrendingUp, 
   FileSpreadsheet, 
   X,
-  ShieldCheck,
-  Sun,
-  Moon
+  Server
 } from 'lucide-react';
 
 export default function Sidebar({ 
@@ -47,9 +45,9 @@ export default function Sidebar({
       ]
     },
     {
-      title: 'Spreadsheets',
+      title: 'Data & Reporting',
       items: [
-        { id: 'reports', label: 'Excel Summary Mirror', icon: FileSpreadsheet },
+        { id: 'reports', label: 'Excel & Reports', icon: FileSpreadsheet },
       ]
     }
   ];
@@ -60,11 +58,11 @@ export default function Sidebar({
       <div className="sidebar-header">
         <a href="#dashboard" className="brand-badge" onClick={(e) => { e.preventDefault(); setActiveTab('dashboard'); }}>
           <div className="brand-icon">
-            <span style={{ fontWeight: 900, fontSize: '1.25rem' }}>₹</span>
+            <span style={{ fontWeight: 900, fontSize: '1.3rem' }}>₹</span>
           </div>
           <div>
             <div className="brand-title">FinFlow</div>
-            <div className="brand-tag">Executive Suite</div>
+            <div className="brand-tag">Wealth Intelligence</div>
           </div>
         </a>
 
@@ -81,12 +79,17 @@ export default function Sidebar({
 
       {/* User Vault Identifier */}
       <div className="sidebar-user-card">
-        <div className="user-avatar">V</div>
+        <div className="user-avatar">
+          <Server size={18} />
+        </div>
         <div style={{ minWidth: 0, flex: 1 }}>
           <div className="user-meta-name" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             Personal Vault
           </div>
-          <div className="user-meta-tag">FinFlow Cloud</div>
+          <div className="user-meta-tag">
+            <span className="pulse-indicator" style={{ width: '5px', height: '5px' }}></span>
+            Mumbai Cloud 🇮🇳
+          </div>
         </div>
       </div>
 
@@ -98,7 +101,6 @@ export default function Sidebar({
             {sec.items.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
-
               return (
                 <button
                   key={item.id}
@@ -108,10 +110,8 @@ export default function Sidebar({
                     if (onClose) onClose();
                   }}
                 >
-                  <Icon size={18} style={{ color: isActive ? 'var(--accent-primary)' : 'inherit', flexShrink: 0 }} />
-                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {item.label}
-                  </span>
+                  <Icon size={18} style={{ color: isActive ? 'var(--emerald-400)' : 'inherit' }} />
+                  <span>{item.label}</span>
                   {item.badge && <span className="badge">{item.badge}</span>}
                 </button>
               );
@@ -120,31 +120,16 @@ export default function Sidebar({
         ))}
       </nav>
 
-      {/* Footer Info & Theme Control */}
+      {/* Sidebar Footer */}
       <div className="sidebar-footer">
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span className="pulse-indicator"></span>
-          <div>
-            <div style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-primary)' }}>PostgreSQL Live</div>
-            <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)' }}>Spreadsheet Sync</div>
+          <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+            Supabase PostgreSQL 17
           </div>
         </div>
-
-        {toggleTheme && (
-          <button 
-            className="icon-only-btn" 
-            style={{ width: '34px', height: '34px' }}
-            onClick={toggleTheme}
-            title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
-            aria-label="Toggle Theme"
-          >
-            {theme === 'dark' ? (
-              <Sun size={16} style={{ color: '#fbbf24' }} />
-            ) : (
-              <Moon size={16} style={{ color: '#6366f1' }} />
-            )}
-          </button>
-        )}
+        <div style={{ fontSize: '0.72rem', color: 'var(--emerald-400)', fontWeight: 700 }}>
+          v2.4
+        </div>
       </div>
     </aside>
   );

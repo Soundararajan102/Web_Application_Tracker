@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sun, Moon, PlusCircle, RefreshCw, Calendar, Menu, ShieldCheck } from 'lucide-react';
+import { Sun, Moon, PlusCircle, RefreshCw, Calendar, Menu, Server } from 'lucide-react';
 
 export default function Navbar({ 
   title, 
@@ -33,10 +33,11 @@ export default function Navbar({
         )}
 
         <div className="header-title-block">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <h1>{title}</h1>
-            <span className="status-pill status-paid" style={{ padding: '2px 8px', fontSize: '0.65rem' }}>
-              <ShieldCheck size={12} /> Live
+            <span className="status-pill status-paid" style={{ padding: '3px 10px', fontSize: '0.68rem', gap: '6px' }}>
+              <span className="pulse-indicator" style={{ width: '6px', height: '6px' }}></span>
+              Mumbai Cloud 🇮🇳
             </span>
           </div>
           {subtitle && <div className="header-subtitle">{subtitle}</div>}
@@ -45,7 +46,7 @@ export default function Navbar({
 
       <div className="header-actions">
         <div className="header-date-pill">
-          <Calendar size={14} style={{ color: 'var(--indigo-500)' }} />
+          <Calendar size={14} style={{ color: 'var(--emerald-400)' }} />
           <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
             {todayFormatted}
           </span>
@@ -58,7 +59,7 @@ export default function Navbar({
           disabled={isRefreshing}
           aria-label="Refresh financial data"
         >
-          <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />
+          <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} style={{ color: 'var(--text-secondary)' }} />
         </button>
 
         <button 
@@ -70,7 +71,7 @@ export default function Navbar({
           {theme === 'dark' ? (
             <Sun size={17} style={{ color: '#fbbf24' }} />
           ) : (
-            <Moon size={17} style={{ color: '#6366f1' }} />
+            <Moon size={17} style={{ color: '#059669' }} />
           )}
         </button>
 

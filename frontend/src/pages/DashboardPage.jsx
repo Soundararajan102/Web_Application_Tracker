@@ -21,7 +21,9 @@ import {
   Layers,
   FileSpreadsheet,
   Zap,
-  ArrowRight
+  ArrowRight,
+  Sparkles,
+  Inbox
 } from 'lucide-react';
 
 export default function DashboardPage({ data, onRefresh, onNavigate, onOpenAddModal }) {
@@ -29,6 +31,7 @@ export default function DashboardPage({ data, onRefresh, onNavigate, onOpenAddMo
   const [repaymentAmt, setRepaymentAmt] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedSearch, setFeedSearch] = useState('');
+  const [activeFeedTab, setActiveFeedTab] = useState('ALL');
 
   const formatINR = (val, minFrac = 0) => {
     const num = typeof val === 'number' ? val : parseFloat(val) || 0;
@@ -40,27 +43,31 @@ export default function DashboardPage({ data, onRefresh, onNavigate, onOpenAddMo
 
   if (!data) {
     return (
-      <div style={{ textAlign: 'center', padding: '80px 0', color: 'var(--text-muted)' }}>
-        <div className="animate-spin" style={{ display: 'inline-block', marginBottom: '14px' }}>
-          <Zap size={32} style={{ color: 'var(--accent-primary)' }} />
+      <div style={{ textAlign: 'center', padding: '100px 0', color: 'var(--text-muted)' }}>
+        <div className="animate-spin" style={{ display: 'inline-block', marginBottom: '16px' }}>
+          <Zap size={36} style={{ color: 'var(--emerald-400)' }} />
         </div>
-        <div style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--text-primary)' }}>Loading Wealth Command Center...</div>
-        <div style={{ fontSize: '0.85rem' }}>Syncing PostgreSQL database with spreadsheet ledger</div>
+        <div style={{ fontWeight: 800, fontSize: '1.2rem', color: 'var(--text-primary)' }}>
+          Loading Wealth Intelligence...
+        </div>
+        <div style={{ fontSize: '0.85rem', marginTop: '6px' }}>
+          Connecting to Supabase Cloud PostgreSQL (Mumbai 🇮🇳)
+        </div>
       </div>
     );
   }
 
-  const { kpis = {}, monthlyTrend = [], categoryBreakdown = [], needVsWant = {}, recentTransactions = [], pendingLoans = [], budgetsStatus = [] } = data;
+  const { kpis = {}, monthlyTrend = [], categoryBreakdown = [], needVsWant = {}, recentTransactions = [], pendingLoans = [] } = data;
 
   // Asset allocation percentages
-  const totalLiquid = kpis.currentBalance || 1;
-  const bankPct = Math.round(((kpis.accountBalance || 0) / totalLiquid) * 100);
-  const cashPct = Math.max(0, 100 - bankPct);
+  const totalLiquid = kpis.currentBalance || 0;
+  const bankPct = totalLiquid > 0 ? Math.round(((kpis.accountBalance || 0) / totalLiquid) * 100) : 50;
+  const cashPct = totalLiquid > 0 ? Math.max(0, 100 - bankPct) : 50;
 
   // Monthly Chart Configuration
-  const trendLabels = monthlyTrend.map(m => m.month);
-  const incomeData = monthlyTrend.map(m => m.income);
-  const expenseData = monthlyTrend.map(m => m.expenses);
+  const trendLabels = monthlyTrend.length > 0 ? monthlyTrend.map(m => m.month) : ['Current'];
+  const incomeData = monthlyTrend.length > 0 ? monthlyTrend.map(m => m.income) : [kpis.totalIncomeYTD || 0];
+  const expenseData = monthlyTrend.length > 0 ? monthlyTrend.map(m => m.expenses) : [kpis.totalExpensesYTD || 0];
 
   const barChartData = {
     labels: trendLabels,
@@ -68,7 +75,7 @@ export default function DashboardPage({ data, onRefresh, onNavigate, onOpenAddMo
       {
         label: 'Inflows (₹)',
         data: incomeData,
-        backgroundColor: 'rgba(16, 185, 129, 0.85)',
+        backgroundColor: 'rgba(16, 185, 129, 0.88)',
         borderColor: '#10b981',
         borderWidth: 1.5,
         borderRadius: 8,
@@ -76,7 +83,7 @@ export default function DashboardPage({ data, onRefresh, onNavigate, onOpenAddMo
       {
         label: 'Outflows (₹)',
         data: expenseData,
-        backgroundColor: 'rgba(244, 63, 94, 0.85)',
+        backgroundColor: 'rgba(244, 63, 94, 0.88)',
         borderColor: '#f43f5e',
         borderWidth: 1.5,
         borderRadius: 8,
@@ -119,16 +126,16 @@ export default function DashboardPage({ data, onRefresh, onNavigate, onOpenAddMo
   };
 
   // Category Doughnut Data
-  const donutLabels = categoryBreakdown.length > 0 ? categoryBreakdown.map(c => c.category) : ['No Outflows'];
+  const donutLabels = categoryBreakdown.length > 0 ? categoryBreakdown.map(c => c.category) : ['No Outflows Recorded'];
   const donutValues = categoryBreakdown.length > 0 ? categoryBreakdown.map(c => c.amount) : [1];
-  const donutColors = ['#6366f1', '#10b981', '#f59e0b', '#06b6d4', '#ec4899', '#8b5cf6'];
+  const donutColors = ['#10b981', '#06b6d4', '#f59e0b', '#f43f5e', '#8b5cf6', '#64748b'];
 
   const donutChartData = {
     labels: donutLabels,
     datasets: [
       {
         data: donutValues,
-        backgroundColor: categoryBreakdown.length > 0 ? donutColors.slice(0, donutLabels.length) : ['#334155'],
+        backgroundColor: categoryBreakdown.length > 0 ? donutColors.slice(0, donutLabels.length) : ['rgba(255, 255, 255, 0.08)'],
         borderWidth: 0,
         hoverOffset: 6,
       },
@@ -182,6 +189,9 @@ export default function DashboardPage({ data, onRefresh, onNavigate, onOpenAddMo
 
   // Filter recent transactions
   const filteredFeed = (recentTransactions || []).filter(tx => {
+    if (activeFeedTab !== 'ALL' && tx.type !== activeFeedTab) {
+      return false;
+    }
     if (!feedSearch) return true;
     const q = feedSearch.toLowerCase();
     return (
@@ -200,11 +210,12 @@ export default function DashboardPage({ data, onRefresh, onNavigate, onOpenAddMo
         <div className="hero-top-row">
           <div className="hero-status-pill">
             <span className="pulse-indicator"></span>
-            <span>Real-Time Cloud Sync • Active</span>
+            <span>Real-Time Cloud Sync • Mumbai 🇮🇳</span>
           </div>
 
-          <div className="hero-period-tag">
-            PostgreSQL Database • Live
+          <div className="hero-period-tag" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Sparkles size={14} style={{ color: 'var(--emerald-400)' }} />
+            <span>Supabase Cloud PostgreSQL</span>
           </div>
         </div>
 
@@ -224,7 +235,7 @@ export default function DashboardPage({ data, onRefresh, onNavigate, onOpenAddMo
 
           <div className="hero-stat-badge" style={{ background: 'var(--amber-bg)', color: 'var(--amber-400)', border: '1px solid var(--amber-border)' }}>
             <Clock size={14} />
-            <span>₹{formatINR(kpis.totalLoansGivenRemaining)} Pending in Loans Given</span>
+            <span>₹{formatINR(kpis.totalLoansGivenRemaining)} Pending in Loans</span>
           </div>
         </div>
 
@@ -232,7 +243,7 @@ export default function DashboardPage({ data, onRefresh, onNavigate, onOpenAddMo
         <div className="asset-alloc-wrap">
           <div className="asset-alloc-labels">
             <span>Asset Distribution</span>
-            <span>Bank: {bankPct}% • Cash: {cashPct}%</span>
+            <span>Bank: {totalLiquid > 0 ? `${bankPct}%` : '₹0'} • Cash: {totalLiquid > 0 ? `${cashPct}%` : '₹0'}</span>
           </div>
           <div className="asset-alloc-bar">
             <div className="alloc-segment bank" style={{ width: `${bankPct}%` }} title={`Bank: ₹${formatINR(kpis.accountBalance)}`} />
@@ -243,7 +254,7 @@ export default function DashboardPage({ data, onRefresh, onNavigate, onOpenAddMo
         {/* 3 Interactive Sub-Account Cards */}
         <div className="command-subgrid">
           <div className="command-card" onClick={() => onNavigate('income')}>
-            <div className="command-card-icon" style={{ background: 'var(--indigo-bg)', color: 'var(--indigo-400)' }}>
+            <div className="command-card-icon" style={{ background: 'var(--cyan-bg)', color: 'var(--cyan-400)' }}>
               <Building2 size={22} />
             </div>
             <div style={{ minWidth: 0, flex: 1 }}>
@@ -301,8 +312,8 @@ export default function DashboardPage({ data, onRefresh, onNavigate, onOpenAddMo
           </button>
 
           <button className="btn-command" onClick={() => onNavigate('reports')}>
-            <FileSpreadsheet size={16} style={{ color: 'var(--cyan-500)' }} />
-            <span>Spreadsheet Mirror</span>
+            <FileSpreadsheet size={16} style={{ color: 'var(--cyan-400)' }} />
+            <span>Reports & Excel</span>
           </button>
         </div>
       </section>
@@ -325,16 +336,18 @@ export default function DashboardPage({ data, onRefresh, onNavigate, onOpenAddMo
           </div>
         </div>
 
-        <div className="bento-kpi-card" style={{ '--kpi-accent': 'var(--indigo-400)' }}>
+        <div className="bento-kpi-card" style={{ '--kpi-accent': 'var(--rose-400)' }}>
           <div className="bento-kpi-top">
             <span className="bento-kpi-label">Total Outflow YTD</span>
-            <div className="bento-kpi-icon" style={{ background: 'var(--indigo-bg)', color: 'var(--indigo-400)' }}>
+            <div className="bento-kpi-icon" style={{ background: 'var(--rose-bg)', color: 'var(--rose-400)' }}>
               <ArrowUpRight size={20} />
             </div>
           </div>
           <div className="bento-kpi-value mono">₹{formatINR(kpis.totalExpensesYTD)}</div>
           <div className="bento-kpi-footer">
-            <span className="status-pill status-need">{kpis.totalExpensesYTD > 0 ? 'Tracked' : 'Zero Outflow'}</span>
+            <span className="status-pill" style={{ background: 'var(--rose-bg)', color: 'var(--rose-400)', border: '1px solid var(--rose-border)' }}>
+              {kpis.totalExpensesYTD > 0 ? 'Tracked' : 'Zero Outflow'}
+            </span>
             <span>Outflow Ledger</span>
           </div>
         </div>
@@ -353,10 +366,10 @@ export default function DashboardPage({ data, onRefresh, onNavigate, onOpenAddMo
           </div>
         </div>
 
-        <div className="bento-kpi-card" style={{ '--kpi-accent': 'var(--purple-500)' }}>
+        <div className="bento-kpi-card" style={{ '--kpi-accent': 'var(--cyan-400)' }}>
           <div className="bento-kpi-top">
             <span className="bento-kpi-label">Current Month Savings</span>
-            <div className="bento-kpi-icon" style={{ background: 'var(--purple-bg)', color: 'var(--purple-500)' }}>
+            <div className="bento-kpi-icon" style={{ background: 'var(--cyan-bg)', color: 'var(--cyan-400)' }}>
               <PiggyBank size={20} />
             </div>
           </div>
@@ -369,7 +382,7 @@ export default function DashboardPage({ data, onRefresh, onNavigate, onOpenAddMo
       </section>
 
       {/* =====================================================================
-          3. FINANCIAL INTELLIGENCE & CHARTS (GRID 2-COL)
+          3. FINANCIAL INTELLIGENCE & CHARTS (GRID 3-COL)
           ===================================================================== */}
       <div className="grid-3col">
         {/* Cash Flow Pattern */}
@@ -380,7 +393,7 @@ export default function DashboardPage({ data, onRefresh, onNavigate, onOpenAddMo
                 <TrendingUp size={18} style={{ color: 'var(--emerald-400)' }} />
                 Cash Flow Pattern (5-Month Trend)
               </h2>
-              <div className="card-subtitle">Monthly Inflow vs Outflow Velocity (Jun – Oct)</div>
+              <div className="card-subtitle">Monthly Inflow vs Outflow Velocity</div>
             </div>
             <button className="btn btn-secondary btn-sm" onClick={() => onNavigate('reports')}>
               Sheet View →
@@ -396,7 +409,7 @@ export default function DashboardPage({ data, onRefresh, onNavigate, onOpenAddMo
           <div className="card-header">
             <div>
               <h2 className="card-title">
-                <Coins size={18} style={{ color: '#ec4899' }} />
+                <Coins size={18} style={{ color: 'var(--emerald-400)' }} />
                 Outflow Allocation
               </h2>
               <div className="card-subtitle">Category & Priority Split</div>
@@ -454,7 +467,8 @@ export default function DashboardPage({ data, onRefresh, onNavigate, onOpenAddMo
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  gap: '12px'
+                  gap: '12px',
+                  boxShadow: 'var(--card-bevel)'
                 }}
               >
                 <div>
@@ -492,45 +506,82 @@ export default function DashboardPage({ data, onRefresh, onNavigate, onOpenAddMo
         <div className="card-header">
           <div>
             <h2 className="card-title">
-              <Clock size={18} style={{ color: 'var(--cyan-500)' }} />
+              <Clock size={18} style={{ color: 'var(--emerald-400)' }} />
               Chronological Activity Ledger
             </h2>
-            <div className="card-subtitle">Latest inflows, expenditures, and personal loans</div>
+            <div className="card-subtitle">Real-time inflows, expenditures, and personal loans</div>
           </div>
 
-          <div style={{ position: 'relative', width: '220px' }}>
-            <input
-              type="text"
-              placeholder="Search feed..."
-              className="form-input"
-              value={feedSearch}
-              onChange={(e) => setFeedSearch(e.target.value)}
-              style={{ paddingLeft: '34px', paddingRight: '12px', height: '38px', fontSize: '0.82rem' }}
-            />
-            <Search size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+            {/* Filter Tabs */}
+            <div style={{ display: 'flex', background: 'var(--bg-primary)', padding: '3px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
+              {['ALL', 'INCOME', 'EXPENSE', 'LOAN'].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveFeedTab(tab)}
+                  style={{
+                    padding: '5px 12px',
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    borderRadius: 'var(--radius-sm)',
+                    border: 'none',
+                    cursor: 'pointer',
+                    background: activeFeedTab === tab ? 'var(--bg-surface-elevated)' : 'transparent',
+                    color: activeFeedTab === tab ? 'var(--emerald-400)' : 'var(--text-muted)',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  {tab === 'ALL' ? 'All' : tab === 'INCOME' ? 'Inflows' : tab === 'EXPENSE' ? 'Outflows' : 'Loans'}
+                </button>
+              ))}
+            </div>
+
+            <div style={{ position: 'relative', width: '200px' }}>
+              <input
+                type="text"
+                placeholder="Search ledger..."
+                className="form-input"
+                value={feedSearch}
+                onChange={(e) => setFeedSearch(e.target.value)}
+                style={{ paddingLeft: '34px', paddingRight: '12px', height: '36px', fontSize: '0.82rem' }}
+              />
+              <Search size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+            </div>
           </div>
         </div>
 
-        <div className="table-container">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Type</th>
-                <th>Description</th>
-                <th>Mode</th>
-                <th style={{ textAlign: 'right' }}>Amount (INR)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredFeed.length === 0 ? (
+        {filteredFeed.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '48px 20px', background: 'rgba(255, 255, 255, 0.01)', borderRadius: 'var(--radius-md)', border: '1px dashed var(--border-subtle)', margin: '10px 0' }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--emerald-bg)', color: 'var(--emerald-400)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: '14px' }}>
+              <Inbox size={24} />
+            </div>
+            <div style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--text-primary)', marginBottom: '4px' }}>
+              No Transactions Recorded Yet
+            </div>
+            <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', maxWidth: '400px', margin: '0 auto 18px' }}>
+              Your ledger is completely clean and ready. Add your first salary inflow, bill expense, or personal loan to start tracking your wealth.
+            </div>
+            {onOpenAddModal && (
+              <button className="btn btn-primary btn-sm" onClick={onOpenAddModal}>
+                <PlusCircle size={15} />
+                <span>Record First Transaction</span>
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="table-container">
+            <table className="data-table">
+              <thead>
                 <tr>
-                  <td colSpan="5" style={{ textAlign: 'center', padding: '30px', color: 'var(--text-muted)' }}>
-                    No recent transactions found.
-                  </td>
+                  <th>Date</th>
+                  <th>Type</th>
+                  <th>Description</th>
+                  <th>Mode</th>
+                  <th style={{ textAlign: 'right' }}>Amount (INR)</th>
                 </tr>
-              ) : (
-                filteredFeed.slice(0, 10).map((tx, idx) => {
+              </thead>
+              <tbody>
+                {filteredFeed.slice(0, 10).map((tx, idx) => {
                   const isIncome = tx.type === 'INCOME';
                   const isExpense = tx.type === 'EXPENSE';
                   const isLoan = tx.type === 'LOAN';
@@ -562,11 +613,11 @@ export default function DashboardPage({ data, onRefresh, onNavigate, onOpenAddMo
                       </td>
                     </tr>
                   );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Quick Repayment Modal */}

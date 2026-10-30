@@ -260,15 +260,19 @@ export default function App() {
       >
         <div className="quick-add-type-toggle">
           {[
-            { id: 'expense', label: 'Expense', color: 'btn-primary' },
-            { id: 'income', label: 'Income', color: 'btn-success' },
-            { id: 'loan', label: 'Loan Given', color: 'btn-secondary' },
+            { id: 'expense', label: 'Expense', activeStyle: { background: 'var(--rose-bg)', color: 'var(--rose-400)', border: '1px solid var(--rose-border)' } },
+            { id: 'income', label: 'Income', activeStyle: { background: 'var(--emerald-bg)', color: 'var(--emerald-400)', border: '1px solid var(--emerald-border)' } },
+            { id: 'loan', label: 'Loan Given', activeStyle: { background: 'var(--amber-bg)', color: 'var(--amber-400)', border: '1px solid var(--amber-border)' } },
           ].map(t => (
             <button
               key={t.id}
               type="button"
-              className={`btn ${quickAddType === t.id ? t.color : 'btn-ghost'}`}
-              style={{ flex: 1 }}
+              className="btn btn-sm"
+              style={{
+                flex: 1,
+                borderRadius: 'var(--radius-sm)',
+                ...(quickAddType === t.id ? t.activeStyle : { background: 'transparent', color: 'var(--text-muted)' })
+              }}
               onClick={() => {
                 setQuickAddType(t.id);
                 if (t.id === 'income') setQuickForm(f => ({ ...f, categoryOrSource: 'Salary' }));

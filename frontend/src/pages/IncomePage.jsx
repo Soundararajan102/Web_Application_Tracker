@@ -128,7 +128,7 @@ export default function IncomePage({ onRefreshDashboard }) {
 
         <div className="glass-card" style={{ padding: '18px 24px', display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Building2 size={18} style={{ color: 'var(--indigo-500)' }} />
+            <Building2 size={18} style={{ color: 'var(--cyan-400)' }} />
             <div>
               <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Bank Inflows</div>
               <div className="mono" style={{ fontWeight: 700 }}>₹{bankIncome.toLocaleString('en-IN')}</div>

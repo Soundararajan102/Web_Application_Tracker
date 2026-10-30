@@ -124,7 +124,7 @@ export default function LoansPage({ onRefreshDashboard }) {
         <div className="glass-card" style={{ padding: '20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Total Money Lent</span>
-            <HandCoins size={18} style={{ color: 'var(--indigo-500)' }} />
+            <HandCoins size={18} style={{ color: 'var(--cyan-400)' }} />
           </div>
           <div className="mono" style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-primary)', marginTop: '6px' }}>
             ₹{totalLent.toLocaleString('en-IN', { minimumFractionDigits: 2 })}

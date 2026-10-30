@@ -142,7 +142,7 @@ export default function ReportsPage({ monthlyTrend, onRefreshDashboard }) {
           <div className="card-header">
             <div>
               <h3 className="card-title">
-                <Download size={18} style={{ color: 'var(--indigo-500)' }} />
+                <Download size={18} style={{ color: 'var(--cyan-400)' }} />
                 Export & Download
               </h3>
               <div className="card-subtitle">Download your financial records anytime</div>
