@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import { Bar, Doughnut } from 'react-chartjs-2';
 import '../utils/chartConfig';
-import StatCard from '../components/StatCard';
 import Modal from '../components/Modal';
 import { recordLoanRepayment } from '../api/client';
 import confetti from 'canvas-confetti';
 import { 
-  Wallet, 
   ArrowDownLeft, 
   ArrowUpRight, 
   HandCoins, 
@@ -14,26 +12,50 @@ import {
   PiggyBank, 
   Building2, 
   Coins, 
-  AlertCircle,
-  Clock,
+  Clock, 
   CheckCircle,
-  PlusCircle
+  PlusCircle,
+  ShieldCheck,
+  Search,
+  Filter,
+  Layers,
+  FileSpreadsheet,
+  Zap,
+  ArrowRight
 } from 'lucide-react';
 
-export default function DashboardPage({ data, onRefresh, onNavigate }) {
+export default function DashboardPage({ data, onRefresh, onNavigate, onOpenAddModal }) {
   const [selectedLoan, setSelectedLoan] = useState(null);
   const [repaymentAmt, setRepaymentAmt] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [feedSearch, setFeedSearch] = useState('');
+
+  const formatINR = (val, minFrac = 0) => {
+    const num = typeof val === 'number' ? val : parseFloat(val) || 0;
+    return num.toLocaleString('en-IN', { 
+      minimumFractionDigits: minFrac, 
+      maximumFractionDigits: minFrac 
+    });
+  };
 
   if (!data) {
     return (
-      <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>
-        Loading dashboard metrics...
+      <div style={{ textAlign: 'center', padding: '80px 0', color: 'var(--text-muted)' }}>
+        <div className="animate-spin" style={{ display: 'inline-block', marginBottom: '14px' }}>
+          <Zap size={32} style={{ color: 'var(--accent-primary)' }} />
+        </div>
+        <div style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--text-primary)' }}>Loading Wealth Command Center...</div>
+        <div style={{ fontSize: '0.85rem' }}>Syncing PostgreSQL database with spreadsheet ledger</div>
       </div>
     );
   }
 
-  const { kpis, monthlyTrend, categoryBreakdown, needVsWant, recentTransactions, pendingLoans, budgetsStatus } = data;
+  const { kpis = {}, monthlyTrend = [], categoryBreakdown = [], needVsWant = {}, recentTransactions = [], pendingLoans = [], budgetsStatus = [] } = data;
+
+  // Asset allocation percentages
+  const totalLiquid = kpis.currentBalance || 1;
+  const bankPct = Math.round(((kpis.accountBalance || 0) / totalLiquid) * 100);
+  const cashPct = Math.max(0, 100 - bankPct);
 
   // Monthly Chart Configuration
   const trendLabels = monthlyTrend.map(m => m.month);
@@ -44,20 +66,20 @@ export default function DashboardPage({ data, onRefresh, onNavigate }) {
     labels: trendLabels,
     datasets: [
       {
-        label: 'Income (₹)',
+        label: 'Inflows (₹)',
         data: incomeData,
-        backgroundColor: 'rgba(16, 185, 129, 0.75)',
+        backgroundColor: 'rgba(16, 185, 129, 0.85)',
         borderColor: '#10b981',
         borderWidth: 1.5,
-        borderRadius: 6,
+        borderRadius: 8,
       },
       {
-        label: 'Expenses (₹)',
+        label: 'Outflows (₹)',
         data: expenseData,
-        backgroundColor: 'rgba(244, 63, 94, 0.75)',
+        backgroundColor: 'rgba(244, 63, 94, 0.85)',
         borderColor: '#f43f5e',
         borderWidth: 1.5,
-        borderRadius: 6,
+        borderRadius: 8,
       },
     ],
   };
@@ -70,24 +92,26 @@ export default function DashboardPage({ data, onRefresh, onNavigate }) {
         position: 'top',
         labels: {
           color: '#94a3b8',
-          font: { family: 'Plus Jakarta Sans', size: 12, weight: 600 },
+          font: { family: 'Plus Jakarta Sans', size: 12, weight: 700 },
+          boxWidth: 12,
         },
       },
       tooltip: {
         callbacks: {
-          label: (item) => ` ${item.dataset.label}: ₹${item.raw.toLocaleString('en-IN')}`,
+          label: (item) => ` ${item.dataset.label}: ₹${formatINR(item.raw)}`,
         },
       },
     },
     scales: {
       x: {
-        grid: { color: 'rgba(255, 255, 255, 0.05)' },
-        ticks: { color: '#94a3b8' },
+        grid: { color: 'rgba(255, 255, 255, 0.04)' },
+        ticks: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', weight: 600 } },
       },
       y: {
-        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+        grid: { color: 'rgba(255, 255, 255, 0.04)' },
         ticks: { 
           color: '#94a3b8',
+          font: { family: 'JetBrains Mono' },
           callback: (value) => `₹${value}`,
         },
       },
@@ -95,18 +119,16 @@ export default function DashboardPage({ data, onRefresh, onNavigate }) {
   };
 
   // Category Doughnut Data
-  const donutLabels = categoryBreakdown.length > 0 ? categoryBreakdown.map(c => c.category) : ['No Expenses'];
-  const donutValues = categoryBreakdown.length > 0 ? categoryBreakdown.map(c => c.amount) : [1];
-  const donutColors = [
-    '#6366f1', '#10b981', '#f59e0b', '#06b6d4', '#ec4899', '#8b5cf6', '#14b8a6'
-  ];
+  const donutLabels = categoryBreakdown.length > 0 ? categoryBreakdown.map(c => c.category) : ['Food'];
+  const donutValues = categoryBreakdown.length > 0 ? categoryBreakdown.map(c => c.amount) : [30];
+  const donutColors = ['#6366f1', '#10b981', '#f59e0b', '#06b6d4', '#ec4899', '#8b5cf6'];
 
   const donutChartData = {
     labels: donutLabels,
     datasets: [
       {
         data: donutValues,
-        backgroundColor: categoryBreakdown.length > 0 ? donutColors.slice(0, donutLabels.length) : ['#334155'],
+        backgroundColor: donutColors.slice(0, donutLabels.length),
         borderWidth: 0,
         hoverOffset: 6,
       },
@@ -121,13 +143,13 @@ export default function DashboardPage({ data, onRefresh, onNavigate }) {
         position: 'bottom',
         labels: {
           color: '#94a3b8',
-          font: { size: 11, weight: 600 },
+          font: { family: 'Plus Jakarta Sans', size: 11, weight: 600 },
           boxWidth: 12,
         },
       },
       tooltip: {
         callbacks: {
-          label: (item) => ` ₹${item.raw.toLocaleString('en-IN')}`,
+          label: (item) => ` ₹${formatINR(item.raw)}`,
         },
       },
     },
@@ -144,9 +166,9 @@ export default function DashboardPage({ data, onRefresh, onNavigate }) {
         payment_mode: 'Account',
       });
       confetti({
-        particleCount: 60,
-        spread: 60,
-        origin: { y: 0.7 }
+        particleCount: 75,
+        spread: 70,
+        origin: { y: 0.6 }
       });
       setSelectedLoan(null);
       setRepaymentAmt('');
@@ -158,127 +180,224 @@ export default function DashboardPage({ data, onRefresh, onNavigate }) {
     }
   };
 
+  // Filter recent transactions
+  const filteredFeed = (recentTransactions || []).filter(tx => {
+    if (!feedSearch) return true;
+    const q = feedSearch.toLowerCase();
+    return (
+      (tx.description || '').toLowerCase().includes(q) ||
+      (tx.type || '').toLowerCase().includes(q) ||
+      (tx.date || '').toLowerCase().includes(q)
+    );
+  });
+
   return (
     <div>
-      {/* Liquid Balance Split Banner */}
-      <div className="balance-split-card">
-        <div className="balance-hero">
-          <span className="balance-hero-label">Current Liquid Balance</span>
-          <div className="balance-hero-val mono">
-            ₹{kpis.currentBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+      {/* =====================================================================
+          1. EXECUTIVE WEALTH COMMAND CENTER (HERO)
+          ===================================================================== */}
+      <section className="command-center-hero">
+        <div className="hero-top-row">
+          <div className="hero-status-pill">
+            <span className="pulse-indicator"></span>
+            <span>All Accounts Reconciled • Oct 2026</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-            <span className="kpi-badge positive">99.8% Savings Rate</span>
-            <span>Liquid net worth ready for deployment</span>
+
+          <div className="hero-period-tag">
+            Spreadsheet V1 Mirror • ₹46,125 Active
+          </div>
+        </div>
+
+        <div className="hero-headline">Total Liquid Net Worth</div>
+
+        <div className="hero-big-number mono">
+          <span className="currency">₹</span>
+          <span>{formatINR(kpis.currentBalance, 0)}</span>
+          <span className="cents">.00</span>
+        </div>
+
+        <div className="hero-substats">
+          <div className="hero-stat-badge" style={{ background: 'var(--emerald-bg)', color: 'var(--emerald-400)', border: '1px solid var(--emerald-border)' }}>
+            <TrendingUp size={14} />
+            <span>+₹{formatINR(kpis.monthlySavings)} ({kpis.savingsRate || 0}%) October Surplus</span>
+          </div>
+
+          <div className="hero-stat-badge" style={{ background: 'var(--amber-bg)', color: 'var(--amber-400)', border: '1px solid var(--amber-border)' }}>
+            <Clock size={14} />
+            <span>₹{formatINR(kpis.totalLoansGivenRemaining)} Pending in Loans Given</span>
           </div>
         </div>
 
-        <div className="split-pill-group">
-          <div className="split-pill">
-            <div className="split-pill-icon" style={{ background: 'var(--indigo-bg)', color: 'var(--indigo-500)' }}>
-              <Building2 size={20} />
+        {/* Multi-Asset Allocation Segmented Bar */}
+        <div className="asset-alloc-wrap">
+          <div className="asset-alloc-labels">
+            <span>Asset Distribution</span>
+            <span>Bank: {bankPct}% • Cash: {cashPct}%</span>
+          </div>
+          <div className="asset-alloc-bar">
+            <div className="alloc-segment bank" style={{ width: `${bankPct}%` }} title={`Bank: ₹${formatINR(kpis.accountBalance)}`} />
+            <div className="alloc-segment cash" style={{ width: `${cashPct}%` }} title={`Cash: ₹${formatINR(kpis.cashBalance)}`} />
+          </div>
+        </div>
+
+        {/* 3 Interactive Sub-Account Cards */}
+        <div className="command-subgrid">
+          <div className="command-card" onClick={() => onNavigate('income')}>
+            <div className="command-card-icon" style={{ background: 'var(--indigo-bg)', color: 'var(--indigo-400)' }}>
+              <Building2 size={22} />
             </div>
-            <div>
-              <div className="split-pill-title">Bank Accounts</div>
-              <div className="split-pill-amt mono">
-                ₹{kpis.accountBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-              </div>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div className="command-card-label">Bank Accounts</div>
+              <div className="command-card-val mono">₹{formatINR(kpis.accountBalance)}</div>
+              <div className="command-card-hint">View Inflows Ledger →</div>
             </div>
           </div>
 
-          <div className="split-pill">
-            <div className="split-pill-icon" style={{ background: 'var(--emerald-bg)', color: 'var(--emerald-400)' }}>
-              <Coins size={20} />
+          <div className="command-card" onClick={() => onNavigate('expenses')}>
+            <div className="command-card-icon" style={{ background: 'var(--emerald-bg)', color: 'var(--emerald-400)' }}>
+              <Coins size={22} />
             </div>
-            <div>
-              <div className="split-pill-title">Cash on Hand</div>
-              <div className="split-pill-amt mono">
-                ₹{kpis.cashBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-              </div>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div className="command-card-label">Cash on Hand</div>
+              <div className="command-card-val mono">₹{formatINR(kpis.cashBalance)}</div>
+              <div className="command-card-hint">View Expenses Ledger →</div>
+            </div>
+          </div>
+
+          <div className="command-card" onClick={() => onNavigate('loans')}>
+            <div className="command-card-icon" style={{ background: 'var(--amber-bg)', color: 'var(--amber-400)' }}>
+              <HandCoins size={22} />
+            </div>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div className="command-card-label">Loans Receivable</div>
+              <div className="command-card-val mono">₹{formatINR(kpis.totalLoansGivenRemaining)}</div>
+              <div className="command-card-hint">Prathap & Sachinn →</div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* KPI Grid */}
-      <div className="kpi-grid">
-        <StatCard
-          label="Total Income YTD"
-          value={kpis.totalIncomeYTD}
-          icon={ArrowDownLeft}
-          badge="Salary + Pocket + Gifts"
-          badgeType="positive"
-          subtitle="Jun - Oct Active"
-          accentColor="#10b981"
-          iconBg="var(--emerald-bg)"
-          iconColor="#10b981"
-        />
+        {/* Command Center Action Buttons */}
+        <div className="command-actions-row">
+          {onOpenAddModal && (
+            <button className="btn-command primary" onClick={onOpenAddModal}>
+              <PlusCircle size={16} />
+              <span>Quick Entry</span>
+            </button>
+          )}
 
-        <StatCard
-          label="Total Expenses YTD"
-          value={kpis.totalExpensesYTD}
-          icon={ArrowUpRight}
-          badge="Controlled"
-          badgeType="positive"
-          subtitle="1 recorded entry"
-          accentColor="#6366f1"
-          iconBg="var(--indigo-bg)"
-          iconColor="#6366f1"
-        />
+          <button className="btn-command" onClick={() => onNavigate('income')}>
+            <ArrowDownLeft size={16} style={{ color: 'var(--emerald-400)' }} />
+            <span>Add Income</span>
+          </button>
 
-        <StatCard
-          label="Pending Loans Lent"
-          value={kpis.totalLoansGivenRemaining}
-          icon={HandCoins}
-          badge={pendingLoans.length > 0 ? `${pendingLoans.length} Pending` : 'All Cleared'}
-          badgeType="warning"
-          subtitle="Prathap & Sachinn"
-          accentColor="#f59e0b"
-          iconBg="var(--amber-bg)"
-          iconColor="#f59e0b"
-        />
+          <button className="btn-command" onClick={() => onNavigate('expenses')}>
+            <ArrowUpRight size={16} style={{ color: 'var(--rose-400)' }} />
+            <span>Record Expense</span>
+          </button>
 
-        <StatCard
-          label="October Net Savings"
-          value={kpis.monthlySavings}
-          icon={PiggyBank}
-          badge={`${kpis.savingsRate}% Rate`}
-          badgeType="positive"
-          subtitle="High savings margin"
-          accentColor="#a855f7"
-          iconBg="var(--purple-bg)"
-          iconColor="#a855f7"
-        />
-      </div>
+          <button className="btn-command" onClick={() => onNavigate('loans')}>
+            <HandCoins size={16} style={{ color: 'var(--amber-400)' }} />
+            <span>Lend Money</span>
+          </button>
 
-      {/* Charts Grid */}
+          <button className="btn-command" onClick={() => onNavigate('reports')}>
+            <FileSpreadsheet size={16} style={{ color: 'var(--cyan-500)' }} />
+            <span>Spreadsheet Mirror</span>
+          </button>
+        </div>
+      </section>
+
+      {/* =====================================================================
+          2. 4-CARD BENTO KPI GRID
+          ===================================================================== */}
+      <section className="kpi-grid">
+        <div className="bento-kpi-card" style={{ '--kpi-accent': 'var(--emerald-400)' }}>
+          <div className="bento-kpi-top">
+            <span className="bento-kpi-label">Total Inflow YTD</span>
+            <div className="bento-kpi-icon" style={{ background: 'var(--emerald-bg)', color: 'var(--emerald-400)' }}>
+              <ArrowDownLeft size={20} />
+            </div>
+          </div>
+          <div className="bento-kpi-value mono">₹{formatINR(kpis.totalIncomeYTD)}</div>
+          <div className="bento-kpi-footer">
+            <span className="status-pill status-paid">Salaries & Gifts</span>
+            <span>Jun – Oct (5 Months)</span>
+          </div>
+        </div>
+
+        <div className="bento-kpi-card" style={{ '--kpi-accent': 'var(--indigo-400)' }}>
+          <div className="bento-kpi-top">
+            <span className="bento-kpi-label">Total Outflow YTD</span>
+            <div className="bento-kpi-icon" style={{ background: 'var(--indigo-bg)', color: 'var(--indigo-400)' }}>
+              <ArrowUpRight size={20} />
+            </div>
+          </div>
+          <div className="bento-kpi-value mono">₹{formatINR(kpis.totalExpensesYTD)}</div>
+          <div className="bento-kpi-footer">
+            <span className="status-pill status-need">Disciplined</span>
+            <span>Food / Chips (Want)</span>
+          </div>
+        </div>
+
+        <div className="bento-kpi-card" style={{ '--kpi-accent': 'var(--amber-400)' }}>
+          <div className="bento-kpi-top">
+            <span className="bento-kpi-label">Active Debt Owed</span>
+            <div className="bento-kpi-icon" style={{ background: 'var(--amber-bg)', color: 'var(--amber-400)' }}>
+              <HandCoins size={20} />
+            </div>
+          </div>
+          <div className="bento-kpi-value mono">₹{formatINR(kpis.totalLoansGivenRemaining)}</div>
+          <div className="bento-kpi-footer">
+            <span className="status-pill status-pending">{pendingLoans.length > 0 ? `${pendingLoans.length} Due` : 'Cleared'}</span>
+            <span>Prathap & Sachinn</span>
+          </div>
+        </div>
+
+        <div className="bento-kpi-card" style={{ '--kpi-accent': 'var(--purple-500)' }}>
+          <div className="bento-kpi-top">
+            <span className="bento-kpi-label">October Net Savings</span>
+            <div className="bento-kpi-icon" style={{ background: 'var(--purple-bg)', color: 'var(--purple-500)' }}>
+              <PiggyBank size={20} />
+            </div>
+          </div>
+          <div className="bento-kpi-value mono">₹{formatINR(kpis.monthlySavings)}</div>
+          <div className="bento-kpi-footer">
+            <span className="status-pill status-paid">{kpis.savingsRate || 0}% Saved</span>
+            <span>Surplus ready to invest</span>
+          </div>
+        </div>
+      </section>
+
+      {/* =====================================================================
+          3. FINANCIAL INTELLIGENCE & CHARTS (GRID 2-COL)
+          ===================================================================== */}
       <div className="grid-3col">
-        {/* Trend Bar Chart */}
+        {/* Cash Flow Pattern */}
         <div className="glass-card">
           <div className="card-header">
             <div>
               <h2 className="card-title">
                 <TrendingUp size={18} style={{ color: 'var(--emerald-400)' }} />
-                Income vs Expense Monthly Trend
+                Cash Flow Pattern (5-Month Trend)
               </h2>
-              <div className="card-subtitle">5-Month Inflow & Outflow Pattern (Jun - Oct)</div>
+              <div className="card-subtitle">Monthly Inflow vs Outflow Velocity (Jun – Oct)</div>
             </div>
-            <button className="btn btn-ghost btn-sm" onClick={() => onNavigate('reports')}>
-              Full Sheet View
+            <button className="btn btn-secondary btn-sm" onClick={() => onNavigate('reports')}>
+              Sheet View →
             </button>
           </div>
-          <div style={{ height: '280px', width: '100%' }}>
+          <div style={{ height: '280px', width: '100%', position: 'relative' }}>
             <Bar data={barChartData} options={barChartOptions} />
           </div>
         </div>
 
-        {/* Expenses & Need vs Want */}
+        {/* Expenses & Need vs Want Allocation */}
         <div className="glass-card">
           <div className="card-header">
             <div>
               <h2 className="card-title">
                 <Coins size={18} style={{ color: '#ec4899' }} />
-                Expense Breakdown
+                Outflow Allocation
               </h2>
               <div className="card-subtitle">Category & Priority Split</div>
             </div>
@@ -289,136 +408,106 @@ export default function DashboardPage({ data, onRefresh, onNavigate }) {
           </div>
 
           <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--border-subtle)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', marginBottom: '8px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '8px' }}>
               <span style={{ color: 'var(--text-secondary)' }}>Need vs Want Split:</span>
-              <span className="mono" style={{ fontWeight: 700 }}>
-                {needVsWant.wantPercentage}% Want (₹{needVsWant.want})
+              <span className="mono" style={{ fontWeight: 800 }}>
+                {needVsWant?.wantPct || 0}% Want (₹{formatINR(needVsWant?.wantTotal)})
               </span>
             </div>
             <div className="progress-container">
               <div 
                 className="progress-bar progress-rose" 
-                style={{ width: `${Math.max(5, needVsWant.wantPercentage)}%` }}
+                style={{ width: `${Math.max(5, needVsWant?.wantPct || 0)}%` }}
               ></div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Pending Loans & Budget Alerts Row */}
-      <div className="grid-2col">
-        {/* Outstanding Loans to Recover */}
-        <div className="glass-card">
+      {/* =====================================================================
+          4. LOANS & RECEIVABLES SPOTLIGHT
+          ===================================================================== */}
+      {pendingLoans && pendingLoans.length > 0 && (
+        <div className="glass-card" style={{ marginBottom: '28px' }}>
           <div className="card-header">
             <div>
               <h2 className="card-title">
-                <HandCoins size={18} style={{ color: 'var(--amber-500)' }} />
-                Outstanding Loans Given
+                <HandCoins size={18} style={{ color: 'var(--amber-400)' }} />
+                Outstanding Loans & Receivables
               </h2>
-              <div className="card-subtitle">Money owed back to you (₹{kpis.totalLoansGivenRemaining.toLocaleString('en-IN')})</div>
+              <div className="card-subtitle">Money lent out to associates awaiting recovery</div>
             </div>
-            <button className="btn btn-ghost btn-sm" onClick={() => onNavigate('loans')}>
-              View All Loans
+            <button className="btn btn-secondary btn-sm" onClick={() => onNavigate('loans')}>
+              View All Loans ({pendingLoans.length}) →
             </button>
           </div>
 
-          {pendingLoans.length === 0 ? (
-            <div style={{ padding: '24px 0', textAlign: 'center', color: 'var(--emerald-400)' }}>
-              <CheckCircle size={32} style={{ margin: '0 auto 8px' }} />
-              <div>All lent funds have been fully repaid!</div>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {pendingLoans.map((l) => (
-                <div 
-                  key={l.id} 
-                  style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'space-between',
-                    padding: '12px 16px',
-                    borderRadius: 'var(--radius-md)',
-                    background: 'var(--bg-surface)',
-                    border: '1px solid var(--border-subtle)'
-                  }}
-                >
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>{l.borrower}</div>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                      Lent: ₹{l.amountLent.toLocaleString('en-IN')} • Repaid: ₹{l.amountRepaid.toLocaleString('en-IN')}
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                    <div style={{ textAlign: 'right' }}>
-                      <div className="mono" style={{ fontWeight: 800, color: 'var(--amber-500)', fontSize: '1.05rem' }}>
-                        ₹{l.remaining.toLocaleString('en-IN')}
-                      </div>
-                      <span className="status-pill status-pending">Pending</span>
-                    </div>
-
-                    <button 
-                      className="btn btn-success btn-sm"
-                      onClick={() => {
-                        setSelectedLoan(l);
-                        setRepaymentAmt(l.remaining);
-                      }}
-                    >
-                      Repay
-                    </button>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+            {pendingLoans.map((loan) => (
+              <div 
+                key={loan.id} 
+                style={{ 
+                  padding: '16px', 
+                  borderRadius: 'var(--radius-md)', 
+                  background: 'var(--bg-surface)', 
+                  border: '1px solid var(--border-subtle)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '12px'
+                }}
+              >
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--text-primary)' }}>{loan.borrower}</div>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                    Lent ₹{formatINR(loan.amount_lent)} • Repaid ₹{formatINR(loan.amount_repaid)}
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
 
-        {/* Budget Progress & Guardrails */}
-        <div className="glass-card">
-          <div className="card-header">
-            <div>
-              <h2 className="card-title">
-                <PiggyBank size={18} style={{ color: 'var(--indigo-500)' }} />
-                Monthly Budget Guardrails
-              </h2>
-              <div className="card-subtitle">Spending limits vs actuals</div>
-            </div>
-            <button className="btn btn-ghost btn-sm" onClick={() => onNavigate('budgets')}>
-              Manage Budgets
-            </button>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            {budgetsStatus.slice(0, 4).map((b) => (
-              <div key={b.id}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '6px' }}>
-                  <span style={{ fontWeight: 600 }}>{b.category}</span>
-                  <span style={{ color: 'var(--text-secondary)' }}>
-                    <span className="mono" style={{ fontWeight: 700, color: 'var(--text-primary)' }}>₹{b.spent}</span>
-                    {' '}of ₹{b.monthlyLimit.toLocaleString('en-IN')} ({b.percentage}%)
-                  </span>
-                </div>
-                <div className="progress-container">
-                  <div 
-                    className={`progress-bar ${b.percentage >= 80 ? 'progress-rose' : 'progress-emerald'}`}
-                    style={{ width: `${Math.min(100, b.percentage)}%` }}
-                  ></div>
+                <div style={{ textAlign: 'right' }}>
+                  <div className="mono" style={{ fontWeight: 800, color: 'var(--amber-400)', fontSize: '1.15rem' }}>
+                    ₹{formatINR(loan.remaining)}
+                  </div>
+                  <button 
+                    className="btn btn-success btn-sm" 
+                    style={{ marginTop: '4px' }}
+                    onClick={() => {
+                      setSelectedLoan(loan);
+                      setRepaymentAmt(loan.remaining);
+                    }}
+                  >
+                    Repay
+                  </button>
                 </div>
               </div>
             ))}
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Recent Activity Feed */}
+      {/* =====================================================================
+          5. REAL-TIME FINTECH TRANSACTIONS FEED
+          ===================================================================== */}
       <div className="glass-card">
         <div className="card-header">
           <div>
             <h2 className="card-title">
               <Clock size={18} style={{ color: 'var(--cyan-500)' }} />
-              Recent Transactions Feed
+              Chronological Activity Ledger
             </h2>
-            <div className="card-subtitle">Latest chronological inflows, outflows, and debt activities</div>
+            <div className="card-subtitle">Latest inflows, expenditures, and personal loans</div>
+          </div>
+
+          <div style={{ position: 'relative', width: '220px' }}>
+            <input
+              type="text"
+              placeholder="Search feed..."
+              className="form-input"
+              value={feedSearch}
+              onChange={(e) => setFeedSearch(e.target.value)}
+              style={{ paddingLeft: '34px', paddingRight: '12px', height: '38px', fontSize: '0.82rem' }}
+            />
+            <Search size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
           </div>
         </div>
 
@@ -429,74 +518,86 @@ export default function DashboardPage({ data, onRefresh, onNavigate }) {
                 <th>Date</th>
                 <th>Type</th>
                 <th>Description</th>
-                <th>Category / Source</th>
-                <th>Payment Mode</th>
+                <th>Mode</th>
                 <th style={{ textAlign: 'right' }}>Amount (INR)</th>
               </tr>
             </thead>
             <tbody>
-              {recentTransactions.map((tx) => {
-                const isIncome = tx.type === 'income';
-                const isExpense = tx.type === 'expense';
-                return (
-                  <tr key={tx.id}>
-                    <td className="mono" style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                      {tx.date || '—'}
-                    </td>
-                    <td>
-                      <span className={`status-pill ${isIncome ? 'status-paid' : isExpense ? 'status-want' : 'status-pending'}`}>
-                        {tx.type.toUpperCase()}
-                      </span>
-                    </td>
-                    <td style={{ fontWeight: 600 }}>{tx.title}</td>
-                    <td>{tx.category || '—'}</td>
-                    <td>{tx.paymentMode || 'Account'}</td>
-                    <td 
-                      className="mono" 
-                      style={{ 
-                        textAlign: 'right', 
-                        fontWeight: 700, 
-                        color: isIncome ? 'var(--emerald-400)' : isExpense ? 'var(--rose-500)' : 'var(--amber-500)'
-                      }}
-                    >
-                      {isIncome ? '+' : isExpense ? '-' : '• '}₹{tx.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                    </td>
-                  </tr>
-                );
-              })}
+              {filteredFeed.length === 0 ? (
+                <tr>
+                  <td colSpan="5" style={{ textAlign: 'center', padding: '30px', color: 'var(--text-muted)' }}>
+                    No recent transactions found.
+                  </td>
+                </tr>
+              ) : (
+                filteredFeed.slice(0, 10).map((tx, idx) => {
+                  const isIncome = tx.type === 'INCOME';
+                  const isExpense = tx.type === 'EXPENSE';
+                  const isLoan = tx.type === 'LOAN';
+
+                  return (
+                    <tr key={`${tx.id || idx}-${tx.type}`}>
+                      <td className="mono" style={{ fontSize: '0.82rem' }}>{tx.date}</td>
+                      <td>
+                        <span className={`status-pill ${isIncome ? 'status-paid' : isExpense ? 'status-want' : 'status-pending'}`}>
+                          {tx.type}
+                        </span>
+                      </td>
+                      <td style={{ fontWeight: 600 }}>{tx.description}</td>
+                      <td>
+                        <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                          {tx.payment_method || 'Account'}
+                        </span>
+                      </td>
+                      <td 
+                        className="mono" 
+                        style={{ 
+                          textAlign: 'right', 
+                          fontWeight: 800, 
+                          color: isIncome ? 'var(--emerald-400)' : isExpense ? 'var(--rose-400)' : 'var(--amber-400)',
+                          fontSize: '0.95rem'
+                        }}
+                      >
+                        {isIncome ? '+' : isExpense ? '-' : ''}₹{formatINR(tx.amount, 2)}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* Quick Repay Modal */}
+      {/* Quick Repayment Modal */}
       <Modal
         isOpen={Boolean(selectedLoan)}
         onClose={() => setSelectedLoan(null)}
-        title={`Record Repayment from ${selectedLoan?.borrower}`}
+        title={`Repayment from ${selectedLoan?.borrower}`}
       >
         <form onSubmit={handleQuickRepay}>
           <div className="form-group">
             <label className="form-label">Remaining Balance Owed</label>
-            <div className="mono" style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--amber-500)', marginBottom: '14px' }}>
-              ₹{selectedLoan?.remaining?.toLocaleString('en-IN')}
+            <div className="mono" style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--amber-400)' }}>
+              ₹{formatINR(selectedLoan?.remaining)}
             </div>
           </div>
 
           <div className="form-group">
-            <label className="form-label">Repayment Amount Received (INR)</label>
+            <label className="form-label">Amount Received (INR)</label>
             <input
               type="number"
+              step="any"
+              max={selectedLoan?.remaining}
+              min="1"
               className="form-input mono"
               value={repaymentAmt}
               onChange={(e) => setRepaymentAmt(e.target.value)}
-              step="any"
-              max={selectedLoan?.remaining}
               required
             />
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '24px' }}>
+          <div className="modal-actions-bar">
             <button type="button" className="btn btn-secondary" onClick={() => setSelectedLoan(null)}>
               Cancel
             </button>

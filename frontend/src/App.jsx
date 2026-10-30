@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import Navbar from './components/Navbar';
 import Modal from './components/Modal';
+import MobileBottomNav from './components/MobileBottomNav';
 import DashboardPage from './pages/DashboardPage';
 import IncomePage from './pages/IncomePage';
 import ExpensesPage from './pages/ExpensesPage';
@@ -19,6 +20,7 @@ export default function App() {
   const [dashboardData, setDashboardData] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [quickAddType, setQuickAddType] = useState('expense');
 
   // Quick Add Form
@@ -90,7 +92,7 @@ export default function App() {
         });
       }
 
-      confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
+      confetti({ particleCount: 60, spread: 60, origin: { y: 0.6 } });
       setIsQuickAddOpen(false);
       setQuickForm({
         date: new Date().toISOString().split('T')[0],
@@ -112,21 +114,45 @@ export default function App() {
   const getPageInfo = () => {
     switch (activeTab) {
       case 'dashboard':
-        return { title: 'Executive Financial Dashboard', subtitle: 'Real-time liquidity, cash vs bank breakdown, and 2026 cash flow trends' };
+        return { 
+          title: 'Personal Financial Intelligence', 
+          subtitle: 'Real-time liquidity, cash vs bank breakdown, and 2026 cash flow trends' 
+        };
       case 'income':
-        return { title: 'Income & Inflows Ledger', subtitle: 'Track salaries, gifts, pocket money, and bank credits' };
+        return { 
+          title: 'Income & Inflows Ledger', 
+          subtitle: 'Track salaries, gifts, pocket money, and bank credits' 
+        };
       case 'expenses':
-        return { title: 'Expenditures & Outflows', subtitle: 'Detailed spending records classified by category and Need vs Want' };
+        return { 
+          title: 'Expenditures & Outflows', 
+          subtitle: 'Detailed spending records classified by category and Need vs Want' 
+        };
       case 'loans':
-        return { title: 'Loans Given & Debt Recovery', subtitle: 'Active borrower balances, repayment histories, and pending debt' };
+        return { 
+          title: 'Loans Given & Debt Recovery', 
+          subtitle: 'Active borrower balances, repayment histories, and pending debt' 
+        };
       case 'budgets':
-        return { title: 'Budget Guardrails & Goals', subtitle: 'Category spending caps with warning thresholds' };
+        return { 
+          title: 'Budget Guardrails & Goals', 
+          subtitle: 'Category spending caps with warning thresholds' 
+        };
       case 'recurring':
-        return { title: 'Scheduled Recurring & Subscriptions', subtitle: 'Calendar due dates and one-click transaction payments' };
+        return { 
+          title: 'Scheduled Recurring & Subscriptions', 
+          subtitle: 'Calendar due dates and one-click transaction payments' 
+        };
       case 'investments':
-        return { title: 'Wealth & Investment Assets', subtitle: 'NPS, APY, PPF, and Gold portfolio asset valuation' };
+        return { 
+          title: 'Wealth & Investment Assets', 
+          subtitle: 'NPS, APY, PPF, and Gold portfolio asset valuation' 
+        };
       case 'reports':
-        return { title: 'Reports & Spreadsheet Backup', subtitle: 'Annual Excel summary mirror, CSV downloads, and JSON restores' };
+        return { 
+          title: 'Reports & Spreadsheet Backup', 
+          subtitle: 'Annual Excel summary mirror, CSV downloads, and JSON restores' 
+        };
       default:
         return { title: 'Personal Finance Tracker', subtitle: 'Overview' };
     }
@@ -136,10 +162,25 @@ export default function App() {
 
   return (
     <div className="app-container">
+      {/* Mobile Backdrop */}
+      <div 
+        className={`sidebar-backdrop ${isMobileSidebarOpen ? 'active' : ''}`}
+        onClick={() => setIsMobileSidebarOpen(false)}
+        aria-hidden="true"
+      />
+
       <Sidebar
         activeTab={activeTab}
-        setActiveTab={setActiveTab}
+        setActiveTab={(tab) => {
+          setActiveTab(tab);
+          setIsMobileSidebarOpen(false);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
         pendingLoansCount={pendingLoansCount}
+        isOpen={isMobileSidebarOpen}
+        onClose={() => setIsMobileSidebarOpen(false)}
+        theme={theme}
+        toggleTheme={toggleTheme}
       />
 
       <div className="main-wrapper">
@@ -151,6 +192,7 @@ export default function App() {
           onOpenAddModal={() => setIsQuickAddOpen(true)}
           onRefresh={fetchDashboardData}
           isRefreshing={isRefreshing}
+          onToggleSidebar={() => setIsMobileSidebarOpen(prev => !prev)}
         />
 
         <main className="content-canvas">
@@ -158,7 +200,11 @@ export default function App() {
             <DashboardPage
               data={dashboardData}
               onRefresh={fetchDashboardData}
-              onNavigate={(tab) => setActiveTab(tab)}
+              onNavigate={(tab) => {
+                setActiveTab(tab);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              onOpenAddModal={() => setIsQuickAddOpen(true)}
             />
           )}
 
@@ -193,15 +239,26 @@ export default function App() {
             />
           )}
         </main>
+
+        {/* Executive Mobile Bottom Bar */}
+        <MobileBottomNav
+          activeTab={activeTab}
+          setActiveTab={(tab) => {
+            setActiveTab(tab);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          onOpenQuickAdd={() => setIsQuickAddOpen(true)}
+          onToggleSidebar={() => setIsMobileSidebarOpen(true)}
+        />
       </div>
 
-      {/* Global Quick Entry Modal */}
+      {/* Quick Entry Modal */}
       <Modal
         isOpen={isQuickAddOpen}
         onClose={() => setIsQuickAddOpen(false)}
         title="Quick Transaction Entry"
       >
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+        <div className="quick-add-type-toggle">
           {[
             { id: 'expense', label: 'Expense', color: 'btn-primary' },
             { id: 'income', label: 'Income', color: 'btn-success' },
@@ -236,7 +293,7 @@ export default function App() {
               />
             </div>
             <div className="form-group">
-              <label className="form-label">Amount (INR)</label>
+              <label className="form-label">Amount (INR ₹)</label>
               <input
                 type="number"
                 step="any"
@@ -288,9 +345,10 @@ export default function App() {
                   <option value="Food">Food & Dining</option>
                   <option value="Office">Office & Work</option>
                   <option value="Recharge">Mobile & Internet Recharge</option>
-                  <option value="Others">Others</option>
                   <option value="Entertainment">Entertainment</option>
                   <option value="Shopping">Shopping</option>
+                  <option value="Health">Health & Fitness</option>
+                  <option value="Others">Others</option>
                 </select>
               )}
             </div>
@@ -318,8 +376,8 @@ export default function App() {
                   value={quickForm.needOrWant}
                   onChange={(e) => setQuickForm({ ...quickForm, needOrWant: e.target.value })}
                 >
-                  <option value="Need">Need</option>
-                  <option value="Want">Want</option>
+                  <option value="Need">Need (Essential)</option>
+                  <option value="Want">Want (Discretionary)</option>
                 </select>
               </div>
             )}
@@ -336,7 +394,7 @@ export default function App() {
             />
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
+          <div className="modal-actions-bar">
             <button type="button" className="btn btn-secondary" onClick={() => setIsQuickAddOpen(false)}>
               Cancel
             </button>

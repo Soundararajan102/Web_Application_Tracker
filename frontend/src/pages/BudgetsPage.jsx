@@ -82,7 +82,7 @@ export default function BudgetsPage({ onRefreshDashboard }) {
   return (
     <div>
       {/* Top Banner */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+      <div className="page-top-bar">
         <div>
           <h2 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Spending Budgets & Guardrails</h2>
           <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
@@ -122,7 +122,7 @@ export default function BudgetsPage({ onRefreshDashboard }) {
       </div>
 
       {/* Budget Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
+      <div className="cards-grid">
         {budgets.map((b) => {
           const isWarning = b.percentage >= b.alert_threshold;
           const isExceeded = b.spent > b.monthly_limit;
@@ -231,7 +231,7 @@ export default function BudgetsPage({ onRefreshDashboard }) {
             </div>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
+          <div className="modal-actions-bar">
             <button type="button" className="btn btn-secondary" onClick={() => setIsAddModalOpen(false)}>
               Cancel
             </button>
@@ -270,7 +270,7 @@ export default function BudgetsPage({ onRefreshDashboard }) {
             />
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
+          <div className="modal-actions-bar">
             <button type="button" className="btn btn-secondary" onClick={() => setEditingBudget(null)}>
               Cancel
             </button>

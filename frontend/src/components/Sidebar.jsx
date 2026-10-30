@@ -7,88 +7,144 @@ import {
   Target, 
   Repeat, 
   TrendingUp, 
-  FileSpreadsheet,
-  Wallet,
-  CheckCircle2,
-  Database
+  FileSpreadsheet, 
+  X,
+  ShieldCheck,
+  Sun,
+  Moon
 } from 'lucide-react';
 
-export default function Sidebar({ activeTab, setActiveTab, pendingLoansCount = 0 }) {
-  const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'income', label: 'Income', icon: ArrowDownLeft, badgeText: null },
-    { id: 'expenses', label: 'Expenses', icon: ArrowUpRight, badgeText: null },
-    { 
-      id: 'loans', 
-      label: 'Loans & Debt', 
-      icon: HandCoins, 
-      badgeText: pendingLoansCount > 0 ? `${pendingLoansCount} Due` : null 
+export default function Sidebar({ 
+  activeTab, 
+  setActiveTab, 
+  pendingLoansCount = 0,
+  isOpen = false,
+  onClose,
+  theme,
+  toggleTheme
+}) {
+  const navSections = [
+    {
+      title: 'Core Capital',
+      items: [
+        { id: 'dashboard', label: 'Command Center', icon: LayoutDashboard },
+        { id: 'income', label: 'Income & Inflows', icon: ArrowDownLeft },
+        { id: 'expenses', label: 'Expenses Ledger', icon: ArrowUpRight },
+        { 
+          id: 'loans', 
+          label: 'Loans & Debt Recovery', 
+          icon: HandCoins, 
+          badge: pendingLoansCount > 0 ? `${pendingLoansCount} Due` : null 
+        },
+      ]
     },
-    { id: 'budgets', label: 'Budgets & Goals', icon: Target },
-    { id: 'recurring', label: 'Recurring & Bills', icon: Repeat },
-    { id: 'investments', label: 'Investments', icon: TrendingUp },
-    { id: 'reports', label: 'Reports & Import', icon: FileSpreadsheet },
+    {
+      title: 'Planning & Growth',
+      items: [
+        { id: 'budgets', label: 'Budget Guardrails', icon: Target },
+        { id: 'recurring', label: 'Scheduled Bills', icon: Repeat },
+        { id: 'investments', label: 'Wealth & Portfolio', icon: TrendingUp },
+      ]
+    },
+    {
+      title: 'Spreadsheets',
+      items: [
+        { id: 'reports', label: 'Excel Summary Mirror', icon: FileSpreadsheet },
+      ]
+    }
   ];
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
+      {/* Brand & Close */}
       <div className="sidebar-header">
-        <a href="#dashboard" className="brand-badge" onClick={() => setActiveTab('dashboard')}>
+        <a href="#dashboard" className="brand-badge" onClick={(e) => { e.preventDefault(); setActiveTab('dashboard'); }}>
           <div className="brand-icon">
-            <Wallet size={24} />
+            <span style={{ fontWeight: 900, fontSize: '1.25rem' }}>₹</span>
           </div>
           <div>
             <div className="brand-title">FinFlow</div>
             <div className="brand-tag">Executive Suite</div>
           </div>
         </a>
+
+        {onClose && (
+          <button 
+            className="sidebar-close-btn" 
+            onClick={onClose}
+            aria-label="Close menu"
+          >
+            <X size={18} />
+          </button>
+        )}
       </div>
 
-      <nav className="sidebar-nav">
-        <div className="nav-section-title">Overview & Tracking</div>
-        {navItems.slice(0, 4).map((item) => {
-          const Icon = item.icon;
-          const isActive = activeTab === item.id;
-          return (
-            <button
-              key={item.id}
-              className={`nav-item ${isActive ? 'active' : ''}`}
-              onClick={() => setActiveTab(item.id)}
-            >
-              <Icon size={19} />
-              <span>{item.label}</span>
-              {item.badgeText && <span className="badge">{item.badgeText}</span>}
-            </button>
-          );
-        })}
+      {/* User Vault Identifier */}
+      <div className="sidebar-user-card">
+        <div className="user-avatar">S</div>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div className="user-meta-name" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            Soundar's Vault
+          </div>
+          <div className="user-meta-tag">Personal Ledger V1</div>
+        </div>
+      </div>
 
-        <div className="nav-section-title" style={{ marginTop: '14px' }}>Planning & Growth</div>
-        {navItems.slice(4).map((item) => {
-          const Icon = item.icon;
-          const isActive = activeTab === item.id;
-          return (
-            <button
-              key={item.id}
-              className={`nav-item ${isActive ? 'active' : ''}`}
-              onClick={() => setActiveTab(item.id)}
-            >
-              <Icon size={19} />
-              <span>{item.label}</span>
-              {item.badgeText && <span className="badge">{item.badgeText}</span>}
-            </button>
-          );
-        })}
+      {/* Nav Menu */}
+      <nav className="sidebar-nav">
+        {navSections.map((sec) => (
+          <div key={sec.title}>
+            <div className="nav-section-title">{sec.title}</div>
+            {sec.items.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+
+              return (
+                <button
+                  key={item.id}
+                  className={`nav-item ${isActive ? 'active' : ''}`}
+                  onClick={() => {
+                    setActiveTab(item.id);
+                    if (onClose) onClose();
+                  }}
+                >
+                  <Icon size={18} style={{ color: isActive ? 'var(--accent-primary)' : 'inherit', flexShrink: 0 }} />
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {item.label}
+                  </span>
+                  {item.badge && <span className="badge">{item.badge}</span>}
+                </button>
+              );
+            })}
+          </div>
+        ))}
       </nav>
 
+      {/* Footer Info & Theme Control */}
       <div className="sidebar-footer">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-          <div className="pulse-indicator"></div>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <Database size={13} style={{ color: 'var(--emerald-400)' }} />
-            PostgreSQL Live
-          </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span className="pulse-indicator"></span>
+          <div>
+            <div style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-primary)' }}>PostgreSQL Live</div>
+            <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)' }}>Spreadsheet Sync</div>
+          </div>
         </div>
-        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>v1.0</span>
+
+        {toggleTheme && (
+          <button 
+            className="icon-only-btn" 
+            style={{ width: '34px', height: '34px' }}
+            onClick={toggleTheme}
+            title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+            aria-label="Toggle Theme"
+          >
+            {theme === 'dark' ? (
+              <Sun size={16} style={{ color: '#fbbf24' }} />
+            ) : (
+              <Moon size={16} style={{ color: '#6366f1' }} />
+            )}
+          </button>
+        )}
       </div>
     </aside>
   );

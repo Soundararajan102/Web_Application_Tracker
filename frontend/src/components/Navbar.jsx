@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sun, Moon, PlusCircle, RefreshCw, Calendar } from 'lucide-react';
+import { Sun, Moon, PlusCircle, RefreshCw, Calendar, Menu, ShieldCheck } from 'lucide-react';
 
 export default function Navbar({ 
   title, 
@@ -8,50 +8,75 @@ export default function Navbar({
   toggleTheme, 
   onOpenAddModal, 
   onRefresh, 
-  isRefreshing 
+  isRefreshing,
+  onToggleSidebar
 }) {
-  const todayStr = "13 Oct 2026";
+  const todayFormatted = new Intl.DateTimeFormat('en-IN', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  }).format(new Date());
 
   return (
     <header className="top-header">
       <div className="header-left">
+        {onToggleSidebar && (
+          <button 
+            className="menu-toggle-btn"
+            onClick={onToggleSidebar}
+            title="Open Menu"
+            aria-label="Toggle navigation menu"
+          >
+            <Menu size={20} />
+          </button>
+        )}
+
         <div className="header-title-block">
-          <h1>{title}</h1>
-          <div className="header-subtitle">{subtitle}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h1>{title}</h1>
+            <span className="status-pill status-paid" style={{ padding: '2px 8px', fontSize: '0.65rem' }}>
+              <ShieldCheck size={12} /> Live
+            </span>
+          </div>
+          {subtitle && <div className="header-subtitle">{subtitle}</div>}
         </div>
       </div>
 
       <div className="header-actions">
-        <div 
-          className="split-pill" 
-          style={{ padding: '6px 14px', borderRadius: 'var(--radius-full)', border: '1px solid var(--border-subtle)', background: 'var(--bg-surface)' }}
-        >
+        <div className="header-date-pill">
           <Calendar size={14} style={{ color: 'var(--indigo-500)' }} />
-          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>{todayStr}</span>
+          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+            {todayFormatted}
+          </span>
         </div>
 
         <button 
-          className="btn btn-ghost" 
+          className="icon-only-btn" 
           onClick={onRefresh} 
-          title="Refresh Data"
+          title="Sync & Refresh Database"
           disabled={isRefreshing}
-          style={{ width: '40px', height: '40px', padding: 0 }}
+          aria-label="Refresh financial data"
         >
-          <RefreshCw size={17} className={isRefreshing ? 'animate-spin' : ''} />
+          <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />
         </button>
 
         <button 
-          className="btn btn-ghost" 
+          className="icon-only-btn" 
           onClick={toggleTheme} 
           title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
-          style={{ width: '40px', height: '40px', padding: 0 }}
+          aria-label="Toggle light or dark theme"
         >
-          {theme === 'dark' ? <Sun size={18} style={{ color: '#fbbf24' }} /> : <Moon size={18} style={{ color: '#6366f1' }} />}
+          {theme === 'dark' ? (
+            <Sun size={17} style={{ color: '#fbbf24' }} />
+          ) : (
+            <Moon size={17} style={{ color: '#6366f1' }} />
+          )}
         </button>
 
-        <button className="btn btn-primary" onClick={onOpenAddModal}>
-          <PlusCircle size={17} />
-          <span>Quick Entry</span>
+        <button className="btn btn-primary header-quick-btn" onClick={onOpenAddModal}>
+          <PlusCircle size={16} />
+          <span className="btn-label">Quick Entry</span>
         </button>
       </div>
     </header>

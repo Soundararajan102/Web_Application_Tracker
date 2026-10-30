@@ -80,8 +80,8 @@ export default function IncomePage({ onRefreshDashboard }) {
   return (
     <div>
       {/* Top Action Bar & Filter */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
+      <div className="page-top-bar">
+        <div className="filter-group">
           <div style={{ position: 'relative' }}>
             <input
               type="text"
@@ -89,7 +89,7 @@ export default function IncomePage({ onRefreshDashboard }) {
               className="form-input"
               value={searchSource}
               onChange={(e) => setSearchSource(e.target.value)}
-              style={{ paddingLeft: '36px', width: '220px' }}
+              style={{ paddingLeft: '36px' }}
             />
             <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
           </div>
@@ -98,7 +98,6 @@ export default function IncomePage({ onRefreshDashboard }) {
             className="form-select"
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
-            style={{ width: '150px' }}
           >
             <option value="">All Months</option>
             {['Jun', 'Jul', 'Aug', 'Sep', 'Oct'].map(m => (
@@ -294,7 +293,7 @@ export default function IncomePage({ onRefreshDashboard }) {
             ></textarea>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
+          <div className="modal-actions-bar">
             <button type="button" className="btn btn-secondary" onClick={() => setIsAddModalOpen(false)}>
               Cancel
             </button>

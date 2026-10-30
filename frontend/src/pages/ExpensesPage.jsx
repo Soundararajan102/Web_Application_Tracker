@@ -81,13 +81,12 @@ export default function ExpensesPage({ onRefreshDashboard }) {
   return (
     <div>
       {/* Top Filter & Actions */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
+      <div className="page-top-bar">
+        <div className="filter-group">
           <select
             className="form-select"
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            style={{ width: '170px' }}
           >
             <option value="">All Categories</option>
             {['Food', 'Office', 'Recharge', 'Others', 'Entertainment', 'Health', 'Shopping'].map(c => (
@@ -99,7 +98,6 @@ export default function ExpensesPage({ onRefreshDashboard }) {
             className="form-select"
             value={selectedNeedOrWant}
             onChange={(e) => setSelectedNeedOrWant(e.target.value)}
-            style={{ width: '160px' }}
           >
             <option value="">All Priorities</option>
             <option value="Need">Needs Only</option>
@@ -309,7 +307,7 @@ export default function ExpensesPage({ onRefreshDashboard }) {
             ></textarea>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
+          <div className="modal-actions-bar">
             <button type="button" className="btn btn-secondary" onClick={() => setIsAddModalOpen(false)}>
               Cancel
             </button>

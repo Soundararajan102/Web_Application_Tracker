@@ -105,7 +105,7 @@ export default function LoansPage({ onRefreshDashboard }) {
   return (
     <div>
       {/* Top Banner & Quick Action */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+      <div className="page-top-bar">
         <div>
           <h2 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Loans & Personal Debt Recovery</h2>
           <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
@@ -160,7 +160,7 @@ export default function LoansPage({ onRefreshDashboard }) {
       </div>
 
       {/* Loans Cards & Details */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px', marginBottom: '30px' }}>
+      <div className="cards-grid" style={{ marginBottom: '30px' }}>
         {loans.map((loan) => {
           const isPaid = loan.status === 'Paid' || loan.remaining <= 0;
           const progressPct = loan.amount_lent > 0 ? Math.min(100, Math.round((loan.amount_repaid / loan.amount_lent) * 100)) : 0;
@@ -286,7 +286,7 @@ export default function LoansPage({ onRefreshDashboard }) {
             </select>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
+          <div className="modal-actions-bar">
             <button type="button" className="btn btn-secondary" onClick={() => setSelectedLoan(null)}>
               Cancel
             </button>
@@ -372,7 +372,7 @@ export default function LoansPage({ onRefreshDashboard }) {
             ></textarea>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
+          <div className="modal-actions-bar">
             <button type="button" className="btn btn-secondary" onClick={() => setIsAddModalOpen(false)}>
               Cancel
             </button>

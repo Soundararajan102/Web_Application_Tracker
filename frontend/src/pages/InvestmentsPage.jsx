@@ -80,7 +80,7 @@ export default function InvestmentsPage({ onRefreshDashboard }) {
   return (
     <div>
       {/* Top Banner */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+      <div className="page-top-bar">
         <div>
           <h2 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Investment Portfolio & Wealth Channels</h2>
           <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
@@ -302,7 +302,7 @@ export default function InvestmentsPage({ onRefreshDashboard }) {
             ></textarea>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
+          <div className="modal-actions-bar">
             <button type="button" className="btn btn-secondary" onClick={() => setIsAddModalOpen(false)}>
               Cancel
             </button>
